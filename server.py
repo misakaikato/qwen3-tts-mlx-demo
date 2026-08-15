@@ -6,6 +6,7 @@
 
 import io
 import os
+import queue
 import tempfile
 import threading
 import time
@@ -137,13 +138,25 @@ def _synthesize(model, gen_kwargs: dict, stream: bool):
 	sr = model.sample_rate
 
 	if stream:
-		def pcm_iter():
+		# 生产者独立线程跑完全程再释放锁:若直接在响应生成器里生成,客户端中途断开会让
+		# 生成器悬停在 yield 处不被关闭,gen_lock 永不释放,后续请求全部卡死(实测踩过)。
+		# 队列无界,总量有 max_tokens 护栏兜底(最坏 ~16MB)
+		q: queue.Queue = queue.Queue()
+
+		def produce():
 			try:
 				for a in _chunk_iter(model, gen_kwargs):
-					yield (np.clip(a, -1, 1) * 32767).astype("<i2").tobytes()
+					q.put((np.clip(a, -1, 1) * 32767).astype("<i2").tobytes())
 			except Exception as e:  # noqa: BLE001
-				# 响应头已发出,只能中断流;错误进服务端日志
-				print(f"[stream error] {type(e).__name__}: {e}")
+				print(f"[stream error] {type(e).__name__}: {e}", flush=True)
+			finally:
+				q.put(None)
+
+		threading.Thread(target=produce, daemon=True).start()
+
+		def pcm_iter():
+			while (b := q.get()) is not None:
+				yield b
 
 		return StreamingResponse(
 			pcm_iter(),
