@@ -105,3 +105,13 @@ uv run hf download mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit
 模型偶发不发 EOS（方言 / 指令组合更易触发），会持续输出静音（批式解码）或恒定低噪（流式解码）直到 token 上限。服务端有四道护栏：按字数动态限制 max_tokens、连续 5 秒嗡声提前终止、返回前裁掉尾部嗡声、输出时长明显低于文本语速下限时自动微扰提示词重试一次。
 
 另外：生成对输入是确定性的（同进程同输入必得同输出），个别「安静系」音色描述（如「低沉沙哑、语速缓慢」）在某些进程实例里会稳定退化成短噪声——换个措辞或重启服务重掷即可，响亮音色不受影响。属上游模型 / 量化行为，非 demo 的 bug。
+
+---
+
+## Consulting & Custom Development · 咨询与定制开发
+
+**EN** — Available for freelance and consulting work: custom features or integrations for this project, local LLM / TTS / ASR deployment on Apple Silicon (MLX), and full-stack development in TypeScript, Python, and Rust.
+
+**中文** — 可提供咨询与定制开发：本项目的定制功能与集成、Apple Silicon 上的本地大模型 / 语音合成 / 语音识别部署（MLX），以及 TypeScript、Python、Rust 全栈开发。
+
+Contact · 联系方式：[misakaikato@outlook.com](mailto:misakaikato@outlook.com)
